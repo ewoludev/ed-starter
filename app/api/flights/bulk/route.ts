@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import { readFlights, writeFlights } from '@/lib/flights';
 import { withMiddleware } from '@/lib/withMiddleware';
+import { validateBulkPatch, validateBulkDelete } from '@/lib/validate';
 import type { Flight, FlightStatus } from '@/types';
 
 // PATCH /api/flights/bulk — update status for multiple flights at once
 // Body: { ids: string[], status: FlightStatus, delayMinutes?: number }
 export const PATCH = withMiddleware(async (req: Request) => {
-  const { ids, status, delayMinutes } = (await req.json()) as {
+  const body: unknown = await req.json();
+  const validation = validateBulkPatch(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const { ids, status, delayMinutes } = body as {
     ids: string[];
     status: FlightStatus;
     delayMinutes?: number;
@@ -34,7 +41,13 @@ export const PATCH = withMiddleware(async (req: Request) => {
 // DELETE /api/flights/bulk — remove multiple flights at once
 // Body: { ids: string[] }
 export const DELETE = withMiddleware(async (req: Request) => {
-  const { ids } = (await req.json()) as { ids: string[] };
+  const body: unknown = await req.json();
+  const validation = validateBulkDelete(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const { ids } = body as { ids: string[] };
   const flights = readFlights();
   const filtered = flights.filter((f) => !ids.includes(f.id));
   writeFlights(filtered);

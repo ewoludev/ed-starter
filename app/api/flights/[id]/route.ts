@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readFlights, writeFlights } from '@/lib/flights';
 import { withMiddleware } from '@/lib/withMiddleware';
+import { validateFlightPatch } from '@/lib/validate';
 import type { Flight } from '@/types';
 
 export const GET = withMiddleware(async (_req, ctx) => {
@@ -13,8 +14,13 @@ export const GET = withMiddleware(async (_req, ctx) => {
 
 export const PATCH = withMiddleware(async (req, ctx) => {
   const { id } = await ctx!.params;
-  const updates = (await req.json()) as Partial<Flight>;
+  const body: unknown = await req.json();
+  const validation = validateFlightPatch(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
 
+  const updates = body as Partial<Flight>;
   const flights = readFlights();
   const index = flights.findIndex((f) => f.id === id);
 

@@ -32,19 +32,15 @@ export function FlightEditor({ onAdded }: FlightEditorProps) {
     e.preventDefault();
     setLoading(true);
 
-    const newFlight: Flight = {
-      ...form,
-      id: String(Date.now()),
-    };
-
     try {
       const res = await fetch('/api/flights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFlight),
+        body: JSON.stringify(form),
       });
       if (res.ok) {
-        addFlight(newFlight);
+        const saved: Flight = await res.json();
+        addFlight(saved);
         setForm(EMPTY_FLIGHT);
         onAdded?.();
       }

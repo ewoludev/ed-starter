@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readFlights, writeFlights } from '@/lib/flights';
 import { withMiddleware } from '@/lib/withMiddleware';
+import { validateFlight } from '@/lib/validate';
 import type { Flight } from '@/types';
 
 export const GET = withMiddleware(async () => {
@@ -9,7 +10,17 @@ export const GET = withMiddleware(async () => {
 });
 
 export const POST = withMiddleware(async (req) => {
-  const flight = (await req.json()) as Flight;
+  const body: unknown = await req.json();
+  const validation = validateFlight(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const flight: Flight = {
+    ...(body as Omit<Flight, 'id'>),
+    id: crypto.randomUUID(),
+  };
+
   const flights = readFlights();
   flights.push(flight);
   writeFlights(flights);
