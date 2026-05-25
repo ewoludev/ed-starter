@@ -26,10 +26,10 @@ export function StatusControl({ flight }: StatusControlProps) {
     }
 
     try {
-      const res = await fetch('/api/flights', {
+      const res = await fetch(`/api/flights/${flight.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: flight.id, ...updates }),
+        body: JSON.stringify(updates),
       });
       if (res.ok) {
         updateFlight(flight.id, updates);

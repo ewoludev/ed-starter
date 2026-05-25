@@ -67,11 +67,7 @@ export default function AdminPage() {
   }
 
   async function handleRemove(id: string) {
-    await fetch('/api/flights', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
+    await fetch(`/api/flights/${id}`, { method: 'DELETE' });
     removeFlight(id);
   }
 

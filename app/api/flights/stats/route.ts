@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { readFlights } from '@/lib/flights';
+import { withMiddleware } from '@/lib/withMiddleware';
 import type { FlightStatus } from '@/types';
 
-export async function GET() {
+export const GET = withMiddleware(async () => {
   const flights = readFlights();
 
   const stats = flights.reduce<Record<FlightStatus, number>>(
@@ -14,4 +15,4 @@ export async function GET() {
   );
 
   return NextResponse.json(stats);
-}
+});
